@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doctor-Friendly GeneCode Simulator</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background:#f0f2f5; padding:20px; color:#333; }
+  h1 { color:#2a9df4; text-align:center; }
+  textarea { width:100%; height:180px; font-family: monospace; font-size:14px; padding:10px; border-radius:8px; border:1px solid #ccc; resize:vertical; }
+  button { margin-top:10px; padding:12px 25px; font-size:16px; background:#2a9df4; color:white; border:none; border-radius:8px; cursor:pointer; }
+  button:hover { background:#1f7ecb; }
+  .output-card { background:#fff; padding:15px; margin-top:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); font-family: monospace; white-space: pre-wrap; }
+  .high { border-left:5px solid #e74c3c; }
+  .moderate { border-left:5px solid #f39c12; }
+  .low { border-left:5px solid #2ecc71; }
+</style>
+</head>
+<body>
+
+<h1>Doctor-Friendly GeneCode Simulator</h1>
+
+<label>Enter patients (JSON array of objects: name, age, dna):</label>
+<textarea id="patient_input">[
+{"name":"Alex Morgan","age":12,"dna":"ATGCTTACCGTA"},
+{"name":"Jamie Lee","age":15,"dna":"CGTACGTAGCTA"},
+{"name":"Sam Taylor","age":20,"dna":"TTGACGATCGTA"}
+]</textarea>
+
+<button onclick="runGeneCode()">Run Simulation</button>
+
+<div id="output_area"></div>
+
+<script>
+// Simulated mutation database
+const mutationDB = {
+    "CFTR": ["ATGCTT","CGTACG"],
+    "SickleCell": ["TTGACG"],
+    "BRCA1": ["GATCGT"]
+};
+
+// Function to check mutations and risk
+function analyseDNA(dna) {
+    let mutations = [];
+    for(let gene in mutationDB){
+        mutationDB[gene].forEach(seq => {
+            if(dna.includes(seq)) mutations.push(gene);
+        });
+    }
+    let risk = "Low";
+    if(mutations.length === 1) risk = "Moderate";
+    if(mutations.length > 1) risk = "High";
+    return {mutations, risk};
+}
+
+function runGeneCode() {
+    const outputArea = document.getElementById("output_area");
+    outputArea.innerHTML = "";
+    let patients = [];
+    try {
+        patients = JSON.parse(document.getElementById("patient_input").value);
+    } catch(e){
+        alert("Invalid JSON input!");
+        return;
+    }
+
+    patients.forEach(p=>{
+        const result = analyseDNA(p.dna);
+        const card = document.createElement("div");
+        card.className = `output-card ${result.risk.toLowerCase()}`;
+        card.innerText =
+`Patient: ${p.name}
+Age: ${p.age}
+DNA Sample: ${p.dna}
+Mutations Detected: ${result.mutations.join(", ") || "None"}
+Risk Level: ${result.risk}
+Action: ${result.risk === "High" ? "Genetic counseling recommended" :
+           result.risk === "Moderate" ? "Monitor and retest" :
+           "No immediate action required"}`;
+        outputArea.appendChild(card);
+    });
+}
+</script>
+
+</body>
+</html>
