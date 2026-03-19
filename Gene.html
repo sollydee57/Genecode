@@ -1,85 +1,163 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Doctor-Friendly GeneCode Simulator</title>
+<title>GeneCode AI Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background:#f0f2f5; padding:20px; color:#333; }
-  h1 { color:#2a9df4; text-align:center; }
-  textarea { width:100%; height:180px; font-family: monospace; font-size:14px; padding:10px; border-radius:8px; border:1px solid #ccc; resize:vertical; }
-  button { margin-top:10px; padding:12px 25px; font-size:16px; background:#2a9df4; color:white; border:none; border-radius:8px; cursor:pointer; }
-  button:hover { background:#1f7ecb; }
-  .output-card { background:#fff; padding:15px; margin-top:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); font-family: monospace; white-space: pre-wrap; }
-  .high { border-left:5px solid #e74c3c; }
-  .moderate { border-left:5px solid #f39c12; }
-  .low { border-left:5px solid #2ecc71; }
+  body {
+    font-family: 'Orbitron', sans-serif;
+    background: #e6f2ff;
+    color: #003344;
+    padding: 20px;
+  }
+  #logo {
+    display: block;
+    margin: 0 auto 20px auto;
+    width: 130px;
+    filter: drop-shadow(0 0 10px #00bfff);
+  }
+  h1 {
+    text-align: center;
+    color: #0077cc;
+    text-shadow: 0 0 5px #00bfff;
+    margin-bottom: 20px;
+  }
+  #tutorial-btn, #run-btn {
+    display:block;
+    margin: 0 auto 20px auto;
+    padding: 12px 25px;
+    font-size: 16px;
+    background:#00bfff;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    box-shadow:0 0 10px #00bfff,0 0 20px #00a0ff;
+    transition:0.3s all;
+  }
+  #tutorial-btn:hover, #run-btn:hover { 
+    background:#0099cc; 
+    box-shadow:0 0 20px #00bfff,0 0 40px #00a0ff;
+  }
+  #tutorial-panel {
+    display:none;
+    background:#cce6ff;
+    border:1px solid #00bfff;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    color:#003344;
+  }
+  textarea {
+    width:100%;
+    height:180px;
+    font-family: monospace;
+    font-size:14px;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #00bfff;
+    background:#f0f8ff;
+    color:#003344;
+    box-shadow:0 0 10px #00bfff inset;
+    resize: vertical;
+  }
+  .output-card {
+    background: rgba(255,255,255,0.9);
+    padding:20px;
+    margin-top:20px;
+    border-radius:15px;
+    box-shadow:0 0 10px #00bfff;
+    font-family: monospace;
+    white-space: pre-wrap;
+    border-left:5px solid #00bfff;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color:#003344;
+  }
+  .output-card:hover { transform:scale(1.03); box-shadow:0 0 25px #00bfff; }
+  .high { border-left:5px solid #ff5555; box-shadow:0 0 15px #ff5555; }
+  .moderate { border-left:5px solid #ffaa33; box-shadow:0 0 15px #ffaa33; }
+  .low { border-left:5px solid #55ff55; box-shadow:0 0 15px #55ff55; }
 </style>
 </head>
 <body>
 
-<h1>Doctor-Friendly GeneCode Simulator</h1>
+<img id="logo" src="https://i.imgur.com/j5D6fGm.png" alt="GeneCode Logo">
+<h1>GeneCode AI Simulator</h1>
 
-<label>Enter patients (JSON array of objects: name, age, dna):</label>
+<button id="tutorial-btn" onclick="toggleTutorial()">Show Tutorial</button>
+<div id="tutorial-panel">
+<h2>Tutorial</h2>
+<p>This simulator uses AI to predict DNA mutation risks. Steps:</p>
+<ol>
+<li>Edit or add patient JSON below.</li>
+<li>Click <strong>Run Simulation</strong> to simulate AI diagnosis.</li>
+<li>Cards show predicted risk, AI confidence, and suggested actions.</li>
+</ol>
+</div>
+
+<label>Enter patients (JSON array):</label>
 <textarea id="patient_input">[
 {"name":"Alex Morgan","age":12,"dna":"ATGCTTACCGTA"},
-{"name":"Jamie Lee","age":15,"dna":"CGTACGTAGCTA"},
-{"name":"Sam Taylor","age":20,"dna":"TTGACGATCGTA"}
+{"name":"Jamie Lee","age":15,"dna":"CGTACGTAGCTA"}
 ]</textarea>
 
-<button onclick="runGeneCode()">Run Simulation</button>
+<button id="run-btn" onclick="runGeneCode()">Run Simulation</button>
 
 <div id="output_area"></div>
 
 <script>
-// Simulated mutation database
-const mutationDB = {
-    "CFTR": ["ATGCTT","CGTACG"],
-    "SickleCell": ["TTGACG"],
-    "BRCA1": ["GATCGT"]
-};
+// Tutorial toggle
+function toggleTutorial() {
+  const panel = document.getElementById('tutorial-panel');
+  panel.style.display = panel.style.display==='block'?'none':'block';
+}
 
-// Function to check mutations and risk
-function analyseDNA(dna) {
-    let mutations = [];
-    for(let gene in mutationDB){
-        mutationDB[gene].forEach(seq => {
-            if(dna.includes(seq)) mutations.push(gene);
-        });
-    }
-    let risk = "Low";
-    if(mutations.length === 1) risk = "Moderate";
-    if(mutations.length > 1) risk = "High";
-    return {mutations, risk};
+// Simulated AI disease database
+const diseases = ["CFTR", "Sickle Cell", "BRCA1", "ALS", "Huntington's"];
+
+// Simulated AI analysis
+function aiAnalyseDNA(dna) {
+  let detected = [];
+  // Randomly detect mutations based on DNA length
+  diseases.forEach(d => {
+    if(Math.random() < dna.length/50) detected.push(d);
+  });
+  let risk="Low";
+  if(detected.length===1) risk="Moderate";
+  if(detected.length>1) risk="High";
+  // AI confidence 60%-99%
+  const confidence = Math.floor(Math.random()*40 + 60);
+  return {mutations: detected, risk, confidence};
 }
 
 function runGeneCode() {
-    const outputArea = document.getElementById("output_area");
-    outputArea.innerHTML = "";
-    let patients = [];
-    try {
-        patients = JSON.parse(document.getElementById("patient_input").value);
-    } catch(e){
-        alert("Invalid JSON input!");
-        return;
-    }
+  const outputArea=document.getElementById('output_area');
+  outputArea.innerHTML='Analyzing DNA with AI...';
+  setTimeout(()=> {
+    outputArea.innerHTML='';
+    let patients=[];
+    try { patients=JSON.parse(document.getElementById('patient_input').value); }
+    catch(e){ alert("Invalid JSON input!"); return; }
 
     patients.forEach(p=>{
-        const result = analyseDNA(p.dna);
-        const card = document.createElement("div");
-        card.className = `output-card ${result.risk.toLowerCase()}`;
-        card.innerText =
+      const result = aiAnalyseDNA(p.dna);
+      const card=document.createElement('div');
+      card.className=`output-card ${result.risk.toLowerCase()}`;
+      card.innerText=
 `Patient: ${p.name}
 Age: ${p.age}
 DNA Sample: ${p.dna}
-Mutations Detected: ${result.mutations.join(", ") || "None"}
+AI Predicted Mutations: ${result.mutations.join(", ") || "None"}
 Risk Level: ${result.risk}
-Action: ${result.risk === "High" ? "Genetic counseling recommended" :
-           result.risk === "Moderate" ? "Monitor and retest" :
-           "No immediate action required"}`;
-        outputArea.appendChild(card);
+AI Confidence: ${result.confidence}%
+Action: ${result.risk==="High"?"Genetic counseling recommended":
+         result.risk==="Moderate"?"Monitor and retest":"No immediate action required"}`;
+      outputArea.appendChild(card);
     });
+  }, 800); // simulate AI processing delay
 }
 </script>
 
 </body>
-</html>
+</html> 
