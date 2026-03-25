@@ -1,163 +1,363 @@
-   <!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="UTF-8">
-<title>GeneCode AI Simulator</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+<title>GeneCode v3 Ultimate</title>
 <style>
-  body {
-    font-family: 'Orbitron', sans-serif;
-    background: #e6f2ff;
-    color: #003344;
-    padding: 20px;
-  }
-  #logo {
-    display: block;
-    margin: 0 auto 20px auto;
-    width: 130px;
-    filter: drop-shadow(0 0 10px #00bfff);
-  }
-  h1 {
-    text-align: center;
-    color: #0077cc;
-    text-shadow: 0 0 5px #00bfff;
-    margin-bottom: 20px;
-  }
-  #tutorial-btn, #run-btn {
-    display:block;
-    margin: 0 auto 20px auto;
-    padding: 12px 25px;
-    font-size: 16px;
-    background:#00bfff;
-    color:#fff;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    box-shadow:0 0 10px #00bfff,0 0 20px #00a0ff;
-    transition:0.3s all;
-  }
-  #tutorial-btn:hover, #run-btn:hover { 
-    background:#0099cc; 
-    box-shadow:0 0 20px #00bfff,0 0 40px #00a0ff;
-  }
-  #tutorial-panel {
-    display:none;
-    background:#cce6ff;
-    border:1px solid #00bfff;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
-    color:#003344;
-  }
-  textarea {
-    width:100%;
-    height:180px;
-    font-family: monospace;
-    font-size:14px;
-    padding:15px;
-    border-radius:10px;
-    border:1px solid #00bfff;
-    background:#f0f8ff;
-    color:#003344;
-    box-shadow:0 0 10px #00bfff inset;
-    resize: vertical;
-  }
-  .output-card {
-    background: rgba(255,255,255,0.9);
-    padding:20px;
-    margin-top:20px;
-    border-radius:15px;
-    box-shadow:0 0 10px #00bfff;
-    font-family: monospace;
-    white-space: pre-wrap;
-    border-left:5px solid #00bfff;
-    transition: transform 0.2s, box-shadow 0.2s;
-    color:#003344;
-  }
-  .output-card:hover { transform:scale(1.03); box-shadow:0 0 25px #00bfff; }
-  .high { border-left:5px solid #ff5555; box-shadow:0 0 15px #ff5555; }
-  .moderate { border-left:5px solid #ffaa33; box-shadow:0 0 15px #ffaa33; }
-  .low { border-left:5px solid #55ff55; box-shadow:0 0 15px #55ff55; }
+body { font-family: Arial; padding:20px; background:#eef2f5; }
+textarea { width:100%; font-family:monospace; }
+#codeArea { height:140px; }
+#db_genes { height:60px; }
+pre { background:#fff; padding:10px; border:1px solid #ccc; }
+button { padding:8px; margin:4px; }
+fieldset { margin-top:15px; }
 </style>
 </head>
 <body>
 
-<img id="logo" src="https://i.imgur.com/j5D6fGm.png" alt="GeneCode Logo">
-<h1>GeneCode AI Simulator</h1>
+<h1>🧬 GeneCode v3 Ultimate</h1>
 
-<button id="tutorial-btn" onclick="toggleTutorial()">Show Tutorial</button>
-<div id="tutorial-panel">
-<h2>Tutorial</h2>
-<p>This simulator uses AI to predict DNA mutation risks. Steps:</p>
-<ol>
-<li>Edit or add patient JSON below.</li>
-<li>Click <strong>Run Simulation</strong> to simulate AI diagnosis.</li>
-<li>Cards show predicted risk, AI confidence, and suggested actions.</li>
-</ol>
-</div>
+<!-- ================= TUTORIAL ================= -->
+<h2>📘 Tutorial</h2>
 
-<label>Enter patients (JSON array):</label>
-<textarea id="patient_input">[
-{"name":"Alex Morgan","age":12,"dna":"ATGCTTACCGTA"},
-{"name":"Jamie Lee","age":15,"dna":"CGTACGTAGCTA"}
-]</textarea>
+<button onclick="loadTutorial(1)">Load Patient</button>
+<button onclick="loadTutorial(2)">Analysis</button>
+<button onclick="loadTutorial(3)">Variables</button>
+<button onclick="loadTutorial(4)">Conditions</button>
+<button onclick="loadTutorial(5)">Output</button>
+<button onclick="loadTutorial(6)">Full Example</button>
 
-<button id="run-btn" onclick="runGeneCode()">Run Simulation</button>
+<pre id="tutorialBox">Click a step 👆</pre>
 
-<div id="output_area"></div>
+<!-- ================= CODE ================= -->
+<h2>GeneCode Script</h2>
+
+<textarea id="codeArea">
+load_patient: "ID_001"
+
+set risk_limit: 5
+
+analysis {}
+
+if risk >= risk_limit {
+    alert: "High risk detected"
+}
+
+output {
+    show: risk
+    show: score
+}
+</textarea>
+
+<button onclick="run()">Run</button>
+
+<h3>Output</h3>
+<pre id="output"></pre>
+
+<!-- ================= DATABASE ================= -->
+<h2>Patient Database</h2>
+
+<fieldset>
+<legend>Add / Update Patient</legend>
+
+ID: <input id="db_id" value="ID_002"><br>
+Name: <input id="db_name" value="Bob"><br>
+Age: <input id="db_age" type="number" value="40"><br>
+
+Sex:
+<select id="db_sex">
+<option value="M">M</option>
+<option value="F">F</option>
+</select><br>
+
+Family History:
+<select id="db_family">
+<option value="none">none</option>
+<option value="some">some</option>
+<option value="strong">strong</option>
+</select><br>
+
+Lifestyle:
+<select id="db_lifestyle">
+<option value="low">low</option>
+<option value="medium">medium</option>
+<option value="high">high</option>
+</select><br>
+
+Genes (JSON):
+<textarea id="db_genes">
+{"BRCA1":"moderate","TP53":"weak"}
+</textarea><br>
+
+<button onclick="savePatient()">Save Patient</button>
+<button onclick="showDB()">Show DB</button>
+<button onclick="exportDB()">Export DB</button>
+<input type="file" id="importFile" onchange="importDB(event)">
+
+</fieldset>
+
+<pre id="dbView"></pre>
 
 <script>
-// Tutorial toggle
-function toggleTutorial() {
-  const panel = document.getElementById('tutorial-panel');
-  panel.style.display = panel.style.display==='block'?'none':'block';
+// ---------------- DATABASE ----------------
+let patientsDB = {
+ "ID_001": {
+   name:"Alice", age:35, sex:"F",
+   family_history:"some", lifestyle:"medium",
+   genes:{ BRCA1:"strong", CFTR:"moderate" }
+ }
+};
+
+// ---------------- CONDITIONS ----------------
+const conditionsDB = {
+ BRCA1:{male:0.4,female:1,base:{weak:1,moderate:2,strong:3}},
+ BRCA2:{male:0.6,female:1,base:{weak:1,moderate:2,strong:3}},
+ TP53:{male:1,female:1,base:{weak:1,moderate:2,strong:3}},
+ CFTR:{male:1,female:1,base:{weak:2,moderate:3,strong:4}},
+ HTT:{male:1,female:1,base:{weak:2,moderate:3,strong:5}},
+ HBB:{male:1,female:1,base:{weak:2,moderate:3,strong:4}},
+ PAH:{male:1,female:1,base:{weak:1,moderate:2,strong:3}},
+ FMR1:{male:1.2,female:0.8,base:{weak:2,moderate:3,strong:4}},
+ LDLR:{male:1,female:1,base:{weak:1,moderate:2,strong:3}}
+};
+
+// ---------------- SAVE PATIENT ----------------
+function savePatient(){
+ let id=document.getElementById("db_id").value;
+ let name=document.getElementById("db_name").value;
+ let age=Number(document.getElementById("db_age").value);
+ let sex=document.getElementById("db_sex").value;
+ let family=document.getElementById("db_family").value;
+ let lifestyle=document.getElementById("db_lifestyle").value;
+
+ let genes;
+ try { genes = JSON.parse(document.getElementById("db_genes").value); }
+ catch { alert("Invalid JSON"); return; }
+
+ patientsDB[id] = {name, age, sex, family_history:family, lifestyle, genes};
+ alert("Saved!");
+ showDB();
 }
 
-// Simulated AI disease database
-const diseases = ["CFTR", "Sickle Cell", "BRCA1", "ALS", "Huntington's"];
+// ---------------- SHOW DB ----------------
+function showDB(){
+ document.getElementById("dbView").textContent =
+ JSON.stringify(patientsDB,null,2);
+}
 
-// Simulated AI analysis
-function aiAnalyseDNA(dna) {
-  let detected = [];
-  // Randomly detect mutations based on DNA length
-  diseases.forEach(d => {
-    if(Math.random() < dna.length/50) detected.push(d);
+// ---------------- EXPORT DATABASE ----------------
+function exportDB(){
+  const dataStr = JSON.stringify(patientsDB, null, 2);
+  const blob = new Blob([dataStr], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "patientsDB.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ---------------- IMPORT DATABASE ----------------
+function importDB(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const imported = JSON.parse(e.target.result);
+      for(const id in imported){
+        patientsDB[id] = imported[id]; // merge
+      }
+      alert("Database imported successfully!");
+      showDB();
+    } catch(err){
+      alert("Error importing file: " + err.message);
+    }
+  }
+  reader.readAsText(file);
+}
+
+// ---------------- PARSER ----------------
+function parse(code){
+ let lines=code.split("\n").map(l=>l.trim()).filter(l=>l);
+ let ast=[]; let block=null;
+
+ lines.forEach(line=>{
+  if(line.endsWith("{")){
+    block={name:line.replace("{","").trim(), body:[]};
+    ast.push(block);
+  } else if(line==="}") block=null;
+  else {
+    let [k,...r]=line.split(":");
+    let v=r.join(":").trim().replace(/"/g,"");
+    if(block) block.body.push({k,v});
+    else ast.push({k,v});
+  }
+ });
+
+ return ast;
+}
+
+// ---------------- RISK ----------------
+function calcRisk(p){
+ let score=0;
+
+ for(let g in p.genes){
+  let cond=conditionsDB[g];
+  if(!cond) continue;
+
+  let base=cond.base[p.genes[g]]||0;
+  let mod=p.sex==="M"?cond.male:cond.female;
+
+  score += base * mod;
+ }
+
+ if(p.family_history==="some") score+=2;
+ if(p.family_history==="strong") score+=3;
+
+ if(p.lifestyle==="medium") score+=1;
+ if(p.lifestyle==="high") score+=2;
+
+ let level="LOW";
+ if(score>2) level="MODERATE";
+ if(score>4) level="HIGH";
+ if(score>6) level="CRITICAL";
+
+ return {score,level};
+}
+
+// ---------------- EXECUTOR ----------------
+function run(){
+ let ast=parse(document.getElementById("codeArea").value);
+
+ let ctx={vars:{}}, out={};
+
+ try {
+
+  ast.forEach(n=>{
+
+    // LOAD PATIENT
+    if(n.k==="load_patient"){
+      ctx.p = patientsDB[n.v];
+      if(!ctx.p) throw new Error("Patient not found");
+    }
+
+    // VARIABLES
+    if(n.k==="set"){
+      let [name,val] = n.v.split(" ");
+      ctx.vars[name] = Number(val);
+    }
+
+    // ANALYSIS
+    if(n.name==="analysis"){
+      let r = calcRisk(ctx.p);
+      ctx.risk = r.level;
+      ctx.score = r.score;
+    }
+
+    // CONDITIONS
+    if(n.k==="if"){
+      let threshold = ctx.vars["risk_limit"] || 5;
+
+      if(ctx.score >= threshold){
+        out.alert = "High risk detected";
+        out.recommend = "Clinical review needed";
+      }
+    }
+
+    // OUTPUT BLOCK
+    if(n.name==="output"){
+      n.body.forEach(c=>{
+        if(c.v==="risk") out.risk = ctx.risk;
+        if(c.v==="score") out.score = ctx.score;
+      });
+    }
+
   });
-  let risk="Low";
-  if(detected.length===1) risk="Moderate";
-  if(detected.length>1) risk="High";
-  // AI confidence 60%-99%
-  const confidence = Math.floor(Math.random()*40 + 60);
-  return {mutations: detected, risk, confidence};
+
+  document.getElementById("output").textContent =
+   JSON.stringify(out,null,2);
+
+ } catch(e){
+  document.getElementById("output").textContent =
+   "❌ ERROR: " + e.message;
+ }
 }
 
-function runGeneCode() {
-  const outputArea=document.getElementById('output_area');
-  outputArea.innerHTML='Analyzing DNA with AI...';
-  setTimeout(()=> {
-    outputArea.innerHTML='';
-    let patients=[];
-    try { patients=JSON.parse(document.getElementById('patient_input').value); }
-    catch(e){ alert("Invalid JSON input!"); return; }
+// ---------------- TUTORIAL ----------------
+function loadTutorial(step){
+ let text="";
 
-    patients.forEach(p=>{
-      const result = aiAnalyseDNA(p.dna);
-      const card=document.createElement('div');
-      card.className=`output-card ${result.risk.toLowerCase()}`;
-      card.innerText=
-`Patient: ${p.name}
-Age: ${p.age}
-DNA Sample: ${p.dna}
-AI Predicted Mutations: ${result.mutations.join(", ") || "None"}
-Risk Level: ${result.risk}
-AI Confidence: ${result.confidence}%
-Action: ${result.risk==="High"?"Genetic counseling recommended":
-         result.risk==="Moderate"?"Monitor and retest":"No immediate action required"}`;
-      outputArea.appendChild(card);
-    });
-  }, 800); // simulate AI processing delay
+ if(step===1){
+  text=`1️⃣ LOAD PATIENT
+
+load_patient: "ID_001"
+
+Loads patient data from the database.`;
+ }
+
+ if(step===2){
+  text=`2️⃣ ANALYSIS
+
+analysis {
+}
+
+Calculates risk score automatically.`;
+ }
+
+ if(step===3){
+  text=`3️⃣ VARIABLES
+
+set risk_limit: 5
+
+Stores reusable values.`;
+ }
+
+ if(step===4){
+  text=`4️⃣ CONDITIONS
+
+if risk >= risk_limit {
+ alert: "High risk"
+}
+
+Runs logic based on risk.`;
+ }
+
+ if(step===5){
+  text=`5️⃣ OUTPUT
+
+output {
+ show: risk
+ show: score
+}
+
+Controls what is displayed.`;
+ }
+
+ if(step===6){
+  text=`6️⃣ FULL PROGRAM
+
+load_patient: "ID_001"
+
+set risk_limit: 5
+
+analysis {}
+
+if risk >= risk_limit {
+ alert: "High risk detected"
+}
+
+output {
+ show: risk
+ show: score
+}`;
+ }
+
+ document.getElementById("tutorialBox").textContent=text;
 }
 </script>
 
 </body>
-</html> 
+</html>
